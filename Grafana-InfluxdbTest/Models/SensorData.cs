@@ -4,7 +4,10 @@ using System.Text;
 
 namespace Grafana_InfluxdbTest.Models
 {
-    internal class SensorData
+    public class SensorData
     {
+        public string SensorId { get; set; } = string.Empty;
+        public double Temperature { get; set; }
+        public double Humidity { get; set; }
     }
 }
