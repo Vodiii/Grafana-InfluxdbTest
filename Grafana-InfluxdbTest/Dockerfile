@@ -25,4 +25,5 @@ RUN dotnet publish "./Grafana-InfluxdbTest.csproj" -c $BUILD_CONFIGURATION -o /a
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+ENV InfluxDB__Url=http://host.docker.internal:8086
 ENTRYPOINT ["dotnet", "Grafana-InfluxdbTest.dll"]
