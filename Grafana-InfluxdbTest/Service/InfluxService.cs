@@ -22,17 +22,26 @@ namespace Grafana_InfluxdbTest.Service
 
         public async Task SendDataAsync(SensorData data)
         {
-            var point = PointData
-                .Measurement("sensor_data")
-                .Tag("sensor_id", data.SensorId)
-                .Field("temperature", data.Temperature)
-                .Field("humidity", data.Humidity);
+            try
+            {
 
-            var writeApi = _client.GetWriteApiAsync();
 
-            await writeApi.WritePointAsync(point, _options.Bucket, _options.Org);
+                var point = PointData
+                    .Measurement("sensor_data")
+                    .Tag("sensor_id", data.SensorId)
+                    .Field("temperature", data.Temperature)
+                    .Field("humidity", data.Humidity);
 
-            Console.WriteLine($"Отправлено: {data.SensorId} | T: {data.Temperature:F1} | H: {data.Humidity:F1}");
+                var writeApi = _client.GetWriteApiAsync();
+
+                await writeApi.WritePointAsync(point, _options.Bucket, _options.Org);
+
+                Console.WriteLine($"Отправлено: {data.SensorId} | T: {data.Temperature:F1} | H: {data.Humidity:F1}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("ОШИБКА ОТПРАВКИ", ex.Message);    
+            }
         }
     }
 }

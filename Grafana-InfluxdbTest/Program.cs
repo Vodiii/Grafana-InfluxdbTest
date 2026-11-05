@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Grafana_InfluxdbTest
@@ -14,6 +15,7 @@ namespace Grafana_InfluxdbTest
     {
         public static async Task Main(string[] args)
         {
+            // Создаем хост
             var host = Host.CreateDefaultBuilder(args)
                 .ConfigureServices((context, services) =>
                 {
@@ -31,10 +33,23 @@ namespace Grafana_InfluxdbTest
 
             var influxService = host.Services.GetRequiredService<IInfluxService>();
 
+            
+            // Создаем токен отмены
+            using var cts = new CancellationTokenSource();
+
+            // Перехватываем нажатие Ctrl+C
+            Console.CancelKeyPress += (sender, e) =>
+            {
+                e.Cancel = true; // Отменяем стандартное закрытие процесса
+                cts.Cancel();    // Даем сигнал нашему циклу
+            };
+
             Console.WriteLine("Приложение запущено. Отправка данных... (Нажмите Ctrl+C для выхода)");
 
             var random = new Random();
-            while (true)
+
+            
+            while (!cts.Token.IsCancellationRequested)
             {
                 var newData = new SensorData
                 {
@@ -45,8 +60,25 @@ namespace Grafana_InfluxdbTest
 
                 await influxService.SendDataAsync(newData);
 
-                await Task.Delay(2000);
+                try
+                {
+                    
+                    await Task.Delay(2000, cts.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                    
+                    break;
+                }
             }
+
+            
+            Console.WriteLine("\nЗавершение работы...");
+
+            
+            host.Dispose();
+
+            Console.WriteLine("Программа успешно завершена.");
         }
     }
 }
